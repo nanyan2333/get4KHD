@@ -21,7 +21,7 @@ sess.mount('http://', HTTPAdapter(max_retries=3))
 sess.mount('https://', HTTPAdapter(max_retries=3))
 sess.keep_alive = False  # 关闭多余连接
 
-def get_each_page_img(img_link_list:[str],file_path:str):
+def get_each_page_img(img_link_list:list[str],file_path:str):
     global img_count
     for img_url in img_link_list:
         tmp_str = str(img_url).split('/')[-1].split('.')
