@@ -82,5 +82,5 @@ def get_agent():
     return random.choice(headers_list)
 
 def get_random_sleep():
-    return random.uniform(2,4)
+    return random.uniform(1,2)
 
