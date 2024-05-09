@@ -1,38 +1,37 @@
+import os
 import traceback
 
-import spider
 import requests as axios
-import agent
 from lxml import html
-import os
 
-with open("url.txt",'r') as urlfile:
-    urls = urlfile.readlines()
+import agent
+import spider
 
-for url in urls:
-    try:
-        htmls = axios.get(url, headers=agent.get_agent(), proxies=spider.proxies)
-        tree = html.fromstring(htmls.text)  # tree是html组件树
+if __name__ == "__main__":
+    with open("url.txt", 'r') as urlfile:
+        urls = urlfile.readlines()
 
-        page_link = tree.xpath('//a[@class="page-numbers"]')  # 正则筛选标签,页码链接
-        page_link_list = [link_obj.attrib.get('href') for link_obj in page_link]
-        page_link_list.insert(0, url)  # 选出剩下页数的链接
+    for url in urls:
+        try:
+            htmls = axios.get(url, headers=agent.get_agent(), proxies=spider.proxies)
+            tree = html.fromstring(htmls.text)  # tree是html组件树
 
-        filepath = tree.xpath('//title/text()')
+            page_link = tree.xpath('//a[@class="page-numbers"]')  # 正则筛选标签,页码链接
+            page_link_list = [link_obj.attrib.get('href') for link_obj in page_link]
+            page_link_list.insert(0, url)  # 选出剩下页数的链接
 
-        path = './assets/' + filepath[0] + '/'
-        if not os.path.exists(path):
-            os.makedirs(path)  # 生成保存路径
+            filepath = tree.xpath('//title/text()')
 
-        spider.get_all_img(page_link_list,path)
+            path = './assets/' + filepath[0] + '/'
+            if not os.path.exists(path):
+                os.makedirs(path)  # 生成保存路径
 
-    except Exception as err:
-        with open('log.txt','w') as logfile:
-            logfile.write(f"Error processing {url}: {str(err)}\n")
-            traceback.print_exc(file=logfile)
-        with open('unCatchUrl.txt','w') as ucf:
-            ucf.write(url+'\n')
+            spider.get_all_img(page_link_list, path)
 
-
-
+        except Exception as err:
+            with open('log.txt', 'w') as logfile:
+                logfile.write(f"Error processing {url}: {str(err)}\n")
+                traceback.print_exc(file=logfile)
+            with open('unCatchUrl.txt', 'w') as ucf:
+                ucf.write(url + '\n')
 
