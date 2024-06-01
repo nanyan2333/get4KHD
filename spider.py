@@ -60,6 +60,8 @@ def get_all_img(page_link_list: list[str], path: str):
         links.pop()
         download_each_page_img(links, path)
         time.sleep(agent.get_random_sleep())
+    for _ in range(3):
+        re_download_img()
 
 
 def re_download_img() -> None:
@@ -73,3 +75,4 @@ def re_download_img() -> None:
             except (axios.exceptions.ProxyError, axios.exceptions.SSLError) as err:
                 util.record_err_download_img_url(url, filepath, filename)
                 util.output_err(str(err))
+        print("重下载检查完毕")

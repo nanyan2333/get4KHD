@@ -84,4 +84,4 @@ def get_agent():
 
 
 def get_random_sleep():
-    return random.uniform(2, 2.5)
+    return random.uniform(1, 1.5)
