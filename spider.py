@@ -22,13 +22,12 @@ sess.mount('https://', HTTPAdapter(max_retries=3))
 sess.keep_alive = False  # 关闭多余连接
 
 
-def download_img(filename: str, img_url: str, filepath: str, chunk_size=1024 * 1024):
+def download_img(filename: str, img_url: str, filepath: str):
     """
     下载单张图片
     :param filename:文件名
     :param img_url:图片url
     :param filepath:保存路径
-    :param chunk_size:切片大小
     """
     img_data = axios.get(str(img_url), proxies=proxies, stream=True, headers=agent.get_agent())
     if img_data.status_code == 200:
@@ -36,10 +35,6 @@ def download_img(filename: str, img_url: str, filepath: str, chunk_size=1024 * 1
         with open(filepath + filename, 'ab') as file:
             file.write(img_data.content)
             progress_bar.update(len(img_data.content))
-            # for chunk in img_data.iter_content(chunk_size=chunk_size):
-            #     if chunk:
-            #         file.write(chunk)
-            #         progress_bar.update(len(chunk))
         progress_bar.close()
     else:
         util.output_err(f'status_code{img_data.status_code} download err {filename}')
@@ -68,15 +63,15 @@ def download_each_page_img(img_link_list: list[str], file_path: str):
 
 
 def get_all_img(page_link_list: list[str], path: str):
+    global img_count
+    img_count = 1
     for page in page_link_list:
         htmls = axios.get(page, headers=headers, proxies=proxies)  # 循环get剩下页面的图片
         tree = html.fromstring(htmls.text)
         links = tree.xpath('//p//a[img]/@href')
-        links.pop()
         download_each_page_img(links, path)
-        time.sleep(agent.get_random_sleep())
-
         re_download_img()
+        time.sleep(agent.get_random_sleep())
 
 
 def re_download_img() -> None:
@@ -85,6 +80,7 @@ def re_download_img() -> None:
         img_info = file.readlines()
         for info in img_info:
             url, filepath, filename = info.split('#')
+            filename = filename[:-1]
             try:
                 download_img(filename, url, filepath)
             except (axios.exceptions.ProxyError, axios.exceptions.SSLError) as err:

@@ -35,4 +35,3 @@ if __name__ == "__main__":
                 traceback.print_exc(file=logfile)
             with open('unCatchUrl.txt', 'w') as ucf:
                 ucf.write(url + '\n')
-
