@@ -23,14 +23,23 @@ sess.keep_alive = False  # 关闭多余连接
 
 
 def download_img(filename: str, img_url: str, filepath: str, chunk_size=1024 * 1024):
+    """
+    下载单张图片
+    :param filename:文件名
+    :param img_url:图片url
+    :param filepath:保存路径
+    :param chunk_size:切片大小
+    """
     img_data = axios.get(str(img_url), proxies=proxies, stream=True, headers=agent.get_agent())
     if img_data.status_code == 200:
         progress_bar = tqdm(initial=0, unit='B', unit_scale=True, desc=filename)
         with open(filepath + filename, 'ab') as file:
-            for chunk in img_data.iter_content(chunk_size=chunk_size):
-                if chunk:
-                    file.write(chunk)
-                    progress_bar.update(len(chunk))
+            file.write(img_data.content)
+            progress_bar.update(len(img_data.content))
+            # for chunk in img_data.iter_content(chunk_size=chunk_size):
+            #     if chunk:
+            #         file.write(chunk)
+            #         progress_bar.update(len(chunk))
         progress_bar.close()
     else:
         util.output_err(f'status_code{img_data.status_code} download err {filename}')
@@ -38,6 +47,12 @@ def download_img(filename: str, img_url: str, filepath: str, chunk_size=1024 * 1
 
 
 def download_each_page_img(img_link_list: list[str], file_path: str):
+    """
+    循环下载页面上每一张图片
+    :param img_link_list:
+    :param file_path:
+    :return:
+    """
     global img_count
     for img_url in img_link_list:
         tmp_str = str(img_url).split('/')[-1].split('.')
@@ -56,11 +71,11 @@ def get_all_img(page_link_list: list[str], path: str):
     for page in page_link_list:
         htmls = axios.get(page, headers=headers, proxies=proxies)  # 循环get剩下页面的图片
         tree = html.fromstring(htmls.text)
-        links = tree.xpath('//a[img]/@href')
+        links = tree.xpath('//p//a[img]/@href')
         links.pop()
         download_each_page_img(links, path)
         time.sleep(agent.get_random_sleep())
-    for _ in range(3):
+
         re_download_img()
 
 

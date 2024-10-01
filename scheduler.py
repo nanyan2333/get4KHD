@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
             filepath = tree.xpath('//title/text()')
 
-            path = 'E:/get4KHD/assets/' + filepath[0] + '/'
+            path = 'D:/pythonProject/get4KHD/assets/' + filepath[0] + '/'
             if not os.path.exists(path):
                 os.makedirs(path)  # 生成保存路径
 
