@@ -142,5 +142,7 @@ async function main() {
     }
 }
 
+main();
+
 
 
