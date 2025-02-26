@@ -6,6 +6,7 @@ import readline from 'readline'
 import path from 'path';
 
 var fileBasePath = './assets/'
+const MAX_TRY = 3
 
 async function getImageURLFromWeb(url, urlArray, fileNameArray) {
     const $ = await createWebDom(url)
@@ -27,7 +28,6 @@ async function createWebDom(url) {
     const htmlText = response.data;
     const $ = cheerio.load(htmlText);
     return $;
-
 }
 
 async function extractLinks(url) {
@@ -36,7 +36,6 @@ async function extractLinks(url) {
         var imageURL = []
         var fileName = []
         var fileFoldName = fileFoldName = $('title').eq(0).text()
-
 
         const nextPage = $('a.page-numbers').map((_, a) => $(a).attr('href')).get();
 
@@ -54,7 +53,7 @@ async function extractLinks(url) {
         return { imageURL, fileName, fileFoldName };
 
     } catch (error) {
-        console.error("Error fetching or parsing:", error);
+        console.error("解析链接失败");
         return null;
     }
 }
@@ -72,18 +71,40 @@ async function downloadImage(url, fileName, fileFoldName) {
             headers: { 'User-Agent': 'Mozilla/5.0' },
         });
         fs.writeFileSync(path.join(folderPath, `${fileName}.png`), response.data);
+        console.log(`下载 图片成功: ${folderPath+fileName}`);
     } catch (error) {
-        console.error("Error downloading image:", error);
-        fs.appendFile('./redownload.txt', `${url}#${folderPath}#${fileName}.png\n`, (err) => { if (err) console.log(err) })
+        console.error(`下载 图片失败: ${folderPath}`);
+        fs.appendFile('./redownload.txt', `${url}#${'./' + folderPath}#${fileName}.png\n`, () => { })
     }
 }
 
-export async function redownload(){
+async function redownloadImage(url,folderPath,fileName) {
+    try {
+        const response = await axios.get(url, {
+            responseType: 'arraybuffer',
+            httpsAgent: new HttpsProxyAgent('http://127.0.0.1:7890'),
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+        });
+        fs.writeFileSync(`${folderPath}/${fileName}`, response.data);
+        console.log(`重下载 图片成功: ${folderPath+fileName}`);
+        return true
+    } catch (error) {
+        console.error(`重下载 图片失败: ${folderPath+fileName}`);
+        return false
+    }
+}
+export async function redownload() {
     const lines = await readlineTxt('./redownload.txt');
+    var failList = []
+    console.log('开始重下载');
     await Promise.all(lines.map(async (line) => {
         const [url, folderPath, fileName] = line.split('#');
-        await downloadImage(url, fileName, folderPath);
+        if(!await redownloadImage(url,folderPath,fileName)){
+            failList.push(line)
+        }
     }));
+    fs.writeFileSync('./redownload.txt', failList.join('\n'))
+    console.log('重下载完成');
 }
 
 async function readlineTxt(filePath) {
@@ -99,7 +120,7 @@ async function readlineTxt(filePath) {
     return lines;
 }
 
-function clearTxtFile(filePath){
+function clearTxtFile(filePath) {
     fs.writeFileSync(filePath, '');
 }
 
@@ -114,7 +135,12 @@ async function scheduleDownloads() {
     clearTxtFile('./url.txt')
 }
 
-scheduleDownloads();
+async function main() {
+    await scheduleDownloads();
+    for (let i = 0; i < MAX_TRY; i++) {
+        await redownload()
+    }
+}
 
 
 
