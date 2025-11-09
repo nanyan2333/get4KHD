@@ -1,3 +1,7 @@
 import { redownload } from "./spider.mjs";
 
-redownload();
+async function main(){
+    redownload()
+}
+
+main()

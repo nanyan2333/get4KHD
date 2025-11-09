@@ -1,7 +1,10 @@
 {
     "scripts": {
-        "run": "node spider.mjs",
-        "redownload": "node redownload.mjs"
+        "run": "node main.mjs",
+        "redownload": "node redownload.mjs",
+        "start": "node server.js",
+        "video": "node downloadM3U8.mjs",
+        "test": "node test.mjs"
     },
     "dependencies": {
         "axios": "^1.7.9",

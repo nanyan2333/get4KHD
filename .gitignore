@@ -2,3 +2,7 @@ node_modules/*
 assets/*  
 *.txt
 *.zip
+.vscode/*
+.gitignore
+*.mp4
+*.html
